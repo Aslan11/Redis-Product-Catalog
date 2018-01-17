@@ -8,7 +8,7 @@ const {promisify} = require('util')
 const existsAsync = promisify(client.exists).bind(client)
 const getAsync = promisify(client.get).bind(client)
 const hgetallAsync = promisify(client.hgetall).bind(client)
-//
+
 // redisScan({
 //     redis: client,
 //     pattern: 'product:*',
@@ -74,6 +74,7 @@ app.post('/category', (req, res) => {
             category['id'] = idx
             const hmFields = jsonToHmFields(category)
             client.hmset('category:'+category.id, hmFields)
+            client.sadd(`categories:all`, `category:${category.id}`)
             return res.status(200).send(category)
         })
 
@@ -114,6 +115,34 @@ app.get('/category/:categoryId/products', (req, res) => {
     })
 })
 
+// Get All Categories
+
+app.get('/categories', (req, res) => {
+    client.smembers(`categories:all`, function (err, categories) {
+        if (err) {
+            return res.status(500).send(err)
+        }
+        categoryPromises = []
+        categories.forEach((category) => {
+            categoryPromises.push(hgetallAsync(`${category}`))
+        })
+        Promise.all(categoryPromises).then((categories) => {
+            if (!req.query.q) {
+                return res.status(200).send(categories)
+            } else {
+                const query = req.query.q
+                matchingCategories = []
+                categories.forEach((category) => {
+                    if (category.name.indexOf(query) > -1) {
+                        matchingCategories.push(category)
+                    }
+                })
+                return res.status(200).send(matchingCategories)
+            }
+        })
+    })
+})
+
 // Delete Single Category
 app.delete('/category/:categoryId', (req, res) => {
     const categoryId = req.params.categoryId
@@ -127,6 +156,7 @@ app.delete('/category/:categoryId', (req, res) => {
         if (category === 0) {
             return res.status(404).send()
         }
+        client.srem(`categories:all`, `category:${category.id}`)
         return res.status(200).send()
     })
 })
