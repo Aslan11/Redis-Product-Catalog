@@ -1,4 +1,5 @@
 const express = require('express')
+const morgan = require('morgan')
 const redis = require('redis')
 const redisScan = require('redisscan')
 const bodyParser = require('body-parser')
@@ -8,6 +9,8 @@ const {promisify} = require('util')
 const existsAsync = promisify(client.exists).bind(client)
 const getAsync = promisify(client.get).bind(client)
 const hgetallAsync = promisify(client.hgetall).bind(client)
+
+app.use(morgan('tiny'))
 
 // redisScan({
 //     redis: client,
@@ -280,4 +283,4 @@ app.delete('/product/:productId', (req, res) => {
     })
 })
 
-app.listen(3000, () => console.log('Example app listening on port 3000!'))
+app.listen(3000, () => console.log('Redis Product Catalog API listening on port 3000!'))
