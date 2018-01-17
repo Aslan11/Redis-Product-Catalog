@@ -3,12 +3,17 @@ const morgan = require('morgan')
 const redis = require('redis')
 const bodyParser = require('body-parser')
 const app = express()
-const client = redis.createClient()
 const {promisify} = require('util')
+
+// Create Redis Client
+const client = redis.createClient()
+
+// Promisify Client Functions
 const existsAsync = promisify(client.exists).bind(client)
 const getAsync = promisify(client.get).bind(client)
 const hgetallAsync = promisify(client.hgetall).bind(client)
 
+// Log Inbound Requests
 app.use(morgan('tiny'))
 
 // desconstruct json blob into array of hmset fields
