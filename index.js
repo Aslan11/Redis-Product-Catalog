@@ -1,7 +1,6 @@
 const express = require('express')
 const morgan = require('morgan')
 const redis = require('redis')
-const redisScan = require('redisscan')
 const bodyParser = require('body-parser')
 const app = express()
 const client = redis.createClient()
@@ -11,19 +10,6 @@ const getAsync = promisify(client.get).bind(client)
 const hgetallAsync = promisify(client.hgetall).bind(client)
 
 app.use(morgan('tiny'))
-
-// redisScan({
-//     redis: client,
-//     pattern: 'product:*',
-//     keys_only: true,
-//     each_callback: function (type, key, subkey, length, value, cb) {
-//         console.log(key)
-//         cb()
-//     },
-//     done_callback: function (err) {
-//         console.log("-=-=-=-=-=--=-=-=-")
-//     }
-// })
 
 // desconstruct json blob into array of hmset fields
 const jsonToHmFields = (jsonBlob) => {
